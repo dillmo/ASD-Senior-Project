@@ -30,12 +30,11 @@ public class ASDSeniorProject implements Runnable {
 		
 		// Scrolling text editing field
 		JTextArea textArea = new JTextArea();
-		textArea.setPreferredSize(new Dimension(640, 480));
 		JScrollPane scrollPane = new JScrollPane(textArea);
 		frame.getContentPane().add(scrollPane);
 		
 		// Display the window
-		frame.pack();
+		frame.setSize(new Dimension(640, 480));
 		frame.setVisible(true);
 	}
 
