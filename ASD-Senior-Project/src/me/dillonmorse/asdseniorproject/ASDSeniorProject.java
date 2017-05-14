@@ -68,15 +68,30 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 	}
 
 	public void actionPerformed(ActionEvent e) {
+		// Saving files
 		if (e.getSource() == saveMenuItem) {
 			int returnVal = fileChooser.showSaveDialog(ASDSeniorProject.this);
 			
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				File file = fileChooser.getSelectedFile();
 				
+				// Save the file
 				try {
 					byte[] bytes = ASDSeniorProject.this.textArea.getText().getBytes();
 					Files.write(file.toPath(), bytes);
+				} catch (IOException x) {}
+			}
+		// Opening files
+		} else if (e.getSource() == openMenuItem) {
+			int returnVal = fileChooser.showOpenDialog(ASDSeniorProject.this);
+			
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				File file = fileChooser.getSelectedFile();
+				
+				// Open the file
+				try {
+					String text = new String(Files.readAllBytes(file.toPath()));
+					ASDSeniorProject.this.textArea.setText(text);
 				} catch (IOException x) {}
 			}
 		}
