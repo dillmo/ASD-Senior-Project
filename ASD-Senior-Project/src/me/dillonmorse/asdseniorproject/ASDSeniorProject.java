@@ -146,15 +146,20 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 				
 				// Save the file
 				try {
-					// Generate a secret key from a user-provided password and a random 256-bit salt
+					// Generate two unique 256-bit salts
 					rng = new Random();
 					byte[] keySalt = new byte[32];
-					rng.nextBytes(keySalt);
+					byte[] ivSalt = new byte[32];
+					do {
+						rng.nextBytes(keySalt);
+						rng.nextBytes(ivSalt);
+					} while(Arrays.equals(keySalt, ivSalt));
+					
+					// Generate a secret key from a user-provided password and the key salt
 					byte[] password = getPassword();
 					SecretKeySpec secretKey = genSecretKey(password, keySalt);
 					
-					// Generate an initialization vector from the same password and another salt
-					byte[] ivSalt = new byte[32];
+					// Generate an initialization vector from the same password the IV salt
 					rng.nextBytes(ivSalt);
 					IvParameterSpec iv = genIV(password, ivSalt);
 					
