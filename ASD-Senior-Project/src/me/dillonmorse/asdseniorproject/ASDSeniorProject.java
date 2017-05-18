@@ -50,16 +50,17 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 		JMenuBar menuBar = new JMenuBar();
 		JMenu fileMenu = new JMenu("File");
 		
-		// Saving
+		// Menu item for saving
 		saveMenuItem = new JMenuItem("Save");
 		saveMenuItem.addActionListener(this);
 		fileMenu.add(saveMenuItem);
 		
-		// Opening
+		// Menu item for opening
 		openMenuItem = new JMenuItem("Open");
 		openMenuItem.addActionListener(this);
 		fileMenu.add(openMenuItem);
 		
+		// Finish setting up the menu bar
 		menuBar.add(fileMenu);
 		this.add(menuBar, BorderLayout.NORTH);
 		
@@ -102,6 +103,7 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 		return concatenatedArray;
 	}
 	
+	// TODO: This is likely the weak point of the algorithm (consider PBKDF2, or at least truncated SHA2)
 	// Generates a 128-bit secret using salted MD5
 	private static byte[] genSaltedMD5(byte[] password, byte[] salt) throws NoSuchAlgorithmException {
 		// Salt the password

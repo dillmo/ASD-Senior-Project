@@ -19,13 +19,20 @@ public class PasswordDialog extends JDialog implements ActionListener {
 		super(owner, true);
 		
 		this.setLayout(new BorderLayout());
+		
+		// Create the password label
 		JLabel label = new JLabel("Password: ");
 		this.getContentPane().add(label, BorderLayout.WEST);
+		
+		// Create the password field
 		passwordField = new JPasswordField(10);
 		this.getContentPane().add(passwordField, BorderLayout.CENTER);
-		JButton button = new JButton("OK");
+		
+		// Create the Submit button
+		JButton button = new JButton("Submit");
 		button.addActionListener(this);
 		this.getContentPane().add(button, BorderLayout.EAST);
+		
 		this.pack();
 	}
 
