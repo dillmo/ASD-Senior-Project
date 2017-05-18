@@ -103,23 +103,23 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 		return concatenatedArray;
 	}
 	
-	// TODO: This is likely the weak point of the algorithm (consider PBKDF2, or at least truncated SHA2)
-	// Generates a 128-bit secret using salted MD5
-	private static byte[] genSaltedMD5(byte[] password, byte[] salt) throws NoSuchAlgorithmException {
+	// TODO: This is likely the weak point of the algorithm (consider PBKDF2)
+	// Generates a 128-bit secret using salted and truncated SHA256
+	private static byte[] genSaltedSHA256(byte[] password, byte[] salt) throws NoSuchAlgorithmException {
 		// Salt the password
 		byte[] saltedPassword = byteArrayConcat(password, salt);
 		
-		// Hash the salted password with MD5 for a 128-bit secret
-		MessageDigest messageDigest = MessageDigest.getInstance("MD5");
-		byte[] secret = messageDigest.digest(saltedPassword);
+		// Hash the salted password with SHA256 and truncate it for a 128-bit secret
+		MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+		byte[] secret = Arrays.copyOfRange(messageDigest.digest(saltedPassword), 16, 32);
 		
 		return secret;
 	}
 	
 	// Generates a secret key from a password and a salt
 	private static SecretKeySpec genSecretKey(byte[] password, byte[] salt) throws NoSuchAlgorithmException {
-		// Generate a 128-bit secret using salted MD5
-		byte[] secret = genSaltedMD5(password, salt);
+		// Generate a 128-bit secret using salted SHA256
+		byte[] secret = genSaltedSHA256(password, salt);
 		
 		// Generate a secret key using the secret
 		SecretKeySpec secretKey = new SecretKeySpec(secret, "AES");
@@ -129,8 +129,8 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 	
 	// Generates an initialization vector from a password and a salt
 	private static IvParameterSpec genIV(byte[] password, byte[] salt) throws NoSuchAlgorithmException {
-		// Generate a 128-bit secret using salted MD5
-		byte[] secret = genSaltedMD5(password, salt);
+		// Generate a 128-bit secret using salted SHA256
+		byte[] secret = genSaltedSHA256(password, salt);
 		
 		// Generate an initialization vector using the secret
 		IvParameterSpec iv = new IvParameterSpec(secret);
