@@ -9,8 +9,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -18,7 +18,9 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -84,11 +86,11 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 	}
 	
 	// Gets a password from the user
-	private static byte[] getPassword() {
+	private static char[] getPassword() {
 		// Ask the user for a password
 		PasswordDialog dialog = new PasswordDialog(frame);
 		dialog.open();
-		byte[] password = new String(dialog.passwordField.getPassword()).getBytes();
+		char[] password = dialog.passwordField.getPassword();
 		dialog.destruct();
 		
 		return password;
@@ -103,34 +105,19 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 		return concatenatedArray;
 	}
 	
-	// TODO: This is likely the weak point of the algorithm (consider PBKDF2)
-	// Generates a 128-bit secret using salted and truncated SHA256
-	private static byte[] genSaltedSHA256(byte[] password, byte[] salt) throws NoSuchAlgorithmException {
-		// Salt the password
-		byte[] saltedPassword = byteArrayConcat(password, salt);
-		
-		// Hash the salted password with SHA256 and truncate it for a 128-bit secret
-		MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-		byte[] secret = Arrays.copyOfRange(messageDigest.digest(saltedPassword), 16, 32);
-		
-		return secret;
-	}
-	
 	// Generates a secret key from a password and a salt
-	private static SecretKeySpec genSecretKey(byte[] password, byte[] salt) throws NoSuchAlgorithmException {
-		// Generate a 128-bit secret using salted SHA256
-		byte[] secret = genSaltedSHA256(password, salt);
+	private static byte[] genSecret(char[] password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+		// Generate a 128-bit secret key using PBKDF2-HMACSHA256
+		PBEKeySpec keySpec = new PBEKeySpec(password, salt, 4096, 128);
+		SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
 		
-		// Generate a secret key using the secret
-		SecretKeySpec secretKey = new SecretKeySpec(secret, "AES");
-		
-		return secretKey;
+		return keyFactory.generateSecret(keySpec).getEncoded();
 	}
 	
 	// Generates an initialization vector from a password and a salt
-	private static IvParameterSpec genIV(byte[] password, byte[] salt) throws NoSuchAlgorithmException {
+	private static IvParameterSpec genIV(char[] password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
 		// Generate a 128-bit secret using salted SHA256
-		byte[] secret = genSaltedSHA256(password, salt);
+		byte[] secret = genSecret(password, salt);
 		
 		// Generate an initialization vector using the secret
 		IvParameterSpec iv = new IvParameterSpec(secret);
@@ -158,8 +145,9 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 					} while(Arrays.equals(keySalt, ivSalt));
 					
 					// Generate a secret key from a user-provided password and the key salt
-					byte[] password = getPassword();
-					SecretKeySpec secretKey = genSecretKey(password, keySalt);
+					char[] password = getPassword();
+					byte[] secretKey = genSecret(password, keySalt);
+					SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, "AES");
 					
 					// Generate an initialization vector from the same password the IV salt
 					rng.nextBytes(ivSalt);
@@ -167,7 +155,7 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 					
 					// Initialize a cipher for encryption
 					Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-					cipher.init(Cipher.ENCRYPT_MODE, secretKey, iv);
+					cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, iv);
 					
 					// Encrypt the text
 					byte[] encryptedText = cipher.doFinal(ASDSeniorProject.this.textArea.getText().getBytes());
@@ -191,6 +179,8 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 					e1.printStackTrace();
 				} catch (InvalidAlgorithmParameterException e1) {
 					e1.printStackTrace();
+				} catch (InvalidKeySpecException e1) {
+					e1.printStackTrace();
 				}
 			}
 		// Opening files
@@ -209,15 +199,16 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 					byte[] ivSalt = Arrays.copyOfRange(fileBytes, fileBytes.length - 32, fileBytes.length);
 					
 					// Generate a secret key from a user-provided password and the key salt
-					byte[] password = getPassword();
-					SecretKeySpec secretKey = genSecretKey(password, keySalt);
+					char[] password = getPassword();
+					byte[] secretKey = genSecret(password, keySalt);
+					SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, "AES");
 					
 					// Generated an initialization vector using the password and the IV salt
 					IvParameterSpec iv = genIV(password, ivSalt);
 					
 					// Initialize a cipher for decryption
 					Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-					cipher.init(Cipher.DECRYPT_MODE, secretKey, iv);
+					cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, iv);
 					
 					// Decrypt the text
 					String text = new String(cipher.doFinal(encryptedText));
@@ -238,6 +229,8 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 					JOptionPane.showMessageDialog(ASDSeniorProject.this, "Incorrect password", "Error", JOptionPane.ERROR_MESSAGE);
 					e1.printStackTrace();
 				} catch (InvalidAlgorithmParameterException e1) {
+					e1.printStackTrace();
+				} catch (InvalidKeySpecException e1) {
 					e1.printStackTrace();
 				}
 			}
