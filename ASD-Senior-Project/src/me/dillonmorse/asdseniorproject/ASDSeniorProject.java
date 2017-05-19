@@ -107,9 +107,9 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 	
 	// Generates a secret key from a password and a salt
 	private static byte[] genSecret(char[] password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
-		// Generate a 128-bit secret key using PBKDF2-HMACSHA256
-		PBEKeySpec keySpec = new PBEKeySpec(password, salt, 4096, 128);
-		SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+		// Generate a 128-bit secret key using PBKDF2-HMACSHA512
+		PBEKeySpec keySpec = new PBEKeySpec(password, salt, 10000, 128);
+		SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
 		
 		return keyFactory.generateSecret(keySpec).getEncoded();
 	}
