@@ -136,6 +136,7 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 				// Save the file
 				try {
 					// Generate two unique 256-bit salts
+					// TODO: Use a cryptographically-secure RNG
 					rng = new Random();
 					byte[] keySalt = new byte[32];
 					byte[] ivSalt = new byte[32];
