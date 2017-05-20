@@ -10,10 +10,9 @@ import java.nio.file.Files;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-import java.util.Random;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -40,7 +39,7 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 	private JFileChooser fileChooser;
 	private JMenuItem saveMenuItem, openMenuItem;
 	private JTextArea textArea;
-	private Random rng;
+	private SecureRandom rng;
 	
 	public ASDSeniorProject() {
 		super(new BorderLayout());
@@ -136,8 +135,7 @@ public class ASDSeniorProject extends JPanel implements Runnable, ActionListener
 				// Save the file
 				try {
 					// Generate two unique 256-bit salts
-					// TODO: Use a cryptographically-secure RNG
-					rng = new Random();
+					rng = new SecureRandom();
 					byte[] keySalt = new byte[32];
 					byte[] ivSalt = new byte[32];
 					do {
